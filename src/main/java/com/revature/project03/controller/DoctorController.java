@@ -1,5 +1,10 @@
 package com.revature.project03.controller;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.sql.Date;
 import java.util.List;
 
 import org.apache.catalina.startup.ClassLoaderFactory;
@@ -20,9 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.revature.project03.entities.Doctor;
+import com.revature.project03.entities.DoctorLeave;
+import com.revature.project03.model.DateFetch;
 import com.revature.project03.model.Login;
+import com.revature.project03.service.DoctorLeaveService;
 import com.revature.project03.service.DoctorService;
-import com.revature.project03.service.GeneratePasswordService;
+
 
 import lombok.extern.slf4j.Slf4j;
 @RestController
@@ -34,6 +42,8 @@ public class DoctorController {
     private DoctorService service;
 	//private GeneratePasswordService passGen;
 	
+	@Autowired
+	private DoctorLeaveService leaveService;
 	
 	public String generateRandomPassword() {
 	    PasswordGenerator gen = new PasswordGenerator();
@@ -107,25 +117,28 @@ public class DoctorController {
         return service.deleteDoctor(id);
     }
     
-    @PostMapping("/loginDoctor")
-    public Doctor login(@RequestBody Login login) {
-    	log.trace("Doctor login called");
-    	System.out.println(login);
-    	Doctor curr_Doctor = service.getDoctorByEmail(login.getEmail());
-    	System.out.println(curr_Doctor);
-    	String enteredPass = login.getPassword();
-    	System.out.println(enteredPass);
-    	String userPass = curr_Doctor.getPassword();
-    	System.out.println(userPass);
-    	if(enteredPass.equals(userPass)) {
-    		System.out.println("if loop entered");
-    		log.trace(login.getEmail()+" - logged in as a doctor");
-    		return service.getDoctorByEmail(curr_Doctor.getEmail());
-    	}
-    	else {
-    		return null;
-    	}
+    @PostMapping("/bookleave")
+    public DoctorLeave applyleave(@RequestBody DoctorLeave leave) {
+		return leaveService.saveDoctorLeave(leave);
     	
     }
+    
+    @GetMapping("/getleavesbydate")
+    public List<DoctorLeave> getleavesbydate(@RequestBody DateFetch dateFetch) {
+		return leaveService.findbydates(dateFetch.getDate());
+    	
+    }
+    
+    @DeleteMapping("/deleteleave/{doctorId}")
+    public String deleteleave(@PathVariable int doctorId) {
+    	return leaveService.deleteDoctorLeave(doctorId);
+    }
+    
+    @PostMapping("/getallbydocid")
+    public List<DoctorLeave> getAllLeavesOfDoc(int id){
+    	return leaveService.findAllLeavesOfDoctorById(id);
+    }
+    
+   
 
 }
